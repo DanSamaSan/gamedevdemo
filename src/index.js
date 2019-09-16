@@ -1,6 +1,7 @@
 /*global Phaser, window*/
 import BootScene from './scenes/BootScene.js';
 import GameOverScene from './scenes/GameOverScene.js';
+import Config from './config/config.js';
 
 class Game extends Phaser.Game {
   constructor () {

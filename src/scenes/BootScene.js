@@ -8,8 +8,7 @@ export default class BootScene extends Phaser.Scene {
   preload() {
     this.load.image("sky", "./assets/sprites/sky.png");
     this.load.image("ground", "./assets/sprites/platform.png");
-    this.load.image("star", "./assets/sprites/star.png");
-    this.load.image("bomb", "./assets/sprites/bomb.png");
+    this.load.image("acorn", "./assets/sprites/acorn.png");
     this.load.spritesheet("dude", "./assets/sprites/dude.png", {
       frameWidth: 32,
       frameHeight: 48
@@ -21,8 +20,7 @@ export default class BootScene extends Phaser.Scene {
     ChangeScene.addSceneEventListeners(this);
 
     this.player;
-    this.stars;
-    this.bombs;
+    this.acorns;
     var platforms;
     this.cursors;
     this.score = 0;
@@ -55,7 +53,7 @@ export default class BootScene extends Phaser.Scene {
     this.player.setCollideWorldBounds(true);
 
     //Set gravity of this scene
-    this.physics.world.gravity.y = 300;
+    this.physics.world.gravity.y = 400;
 
     //  Our player animations, turning, walking left and walking right.
     this.anims.create({
@@ -81,44 +79,39 @@ export default class BootScene extends Phaser.Scene {
     //  Input Events
     this.cursors = this.input.keyboard.createCursorKeys();
 
-    //  Some stars to collect, 12 in total, evenly spaced 70 pixels apart along the x axis
-    this.stars = this.physics.add.group({
-      key: "star",
+    //  Some acorns to collect, 12 in total, evenly spaced 70 pixels apart along the x axis
+    this.acorns = this.physics.add.group({
+      key: "acorn",
       repeat: 11,
       setXY: { x: 12, y: 0, stepX: 70 }
     });
 
-    this.stars.children.iterate(function(child) {
-      //  Give each star a slightly different bounce
+    this.acorns.children.iterate(function(child) {
+      //  Give each acorn a slightly different bounce
       child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
     });
 
-    this.bombs = this.physics.add.group();
-
     //  The score
-    this.scoreText = this.add.text(16, 16, "score: 0", {
+    this.scoreText = this.add.text(16, 500, "Score: 0", {
       fontSize: "32px",
       fill: "#000"
     });
 
-    //  Collide the player and the stars with the platforms
+    //  Collide the player and the acorns with the platforms
     this.physics.add.collider(this.player, platforms);
-    this.physics.add.collider(this.stars, platforms);
-    this.physics.add.collider(this.bombs, platforms);
+    this.physics.add.collider(this.acorns, platforms);
 
-    //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
+    //  Checks to see if the player overlaps with any of the acorns, if he does call the collectAcorn function
     this.physics.add.overlap(
       this.player,
-      this.stars,
-      this.collectStar,
+      this.acorns,
+      this.collectAcorn,
       null,
       this
     );
 
     this.physics.add.collider(
       this.player,
-      this.bombs,
-      this.hitBomb,
       null,
       this
     );
@@ -149,16 +142,16 @@ export default class BootScene extends Phaser.Scene {
     }
   }
 
-  collectStar(player, star) {
-    star.disableBody(true, true);
+  collectAcorn(player, acorn) {
+    acorn.disableBody(true, true);
 
     //  Add and update the score
-    this.score += 10;
+    this.score += 1;
     this.scoreText.setText("Score: " + this.score);
 
-    if (this.stars.countActive(true) === 0) {
-      //  A new batch of stars to collect
-      this.stars.children.iterate(function(child) {
+    if (this.acorns.countActive(true) === 0) {
+      //  A new batch of acorns to collect
+      this.acorns.children.iterate(function(child) {
         child.enableBody(true, child.x, 0, true, true);
       });
 
@@ -167,21 +160,8 @@ export default class BootScene extends Phaser.Scene {
           ? Phaser.Math.Between(400, 800)
           : Phaser.Math.Between(0, 400);
 
-      this.bomb = this.bombs.create(x, 16, "bomb");
-      this.bomb.setBounce(1);
-      this.bomb.setCollideWorldBounds(true);
-      this.bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
-      this.bomb.allowGravity = false;
     }
   }
 
-  hitBomb(player, bomb) {
-    this.physics.pause();
 
-    player.setTint(0xff0000);
-
-    player.anims.play("turn");
-
-    this.gameOver = true;
-  }
 }
