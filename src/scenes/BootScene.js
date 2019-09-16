@@ -40,20 +40,15 @@ export default class BootScene extends Phaser.Scene {
       .setScale(2)
       .refreshBody();
 
-    //  Now let's create some ledges
-    platforms.create(600, 400, "ground");
-    platforms.create(50, 250, "ground");
-    platforms.create(750, 220, "ground");
-
     // The player and its settings
-    this.player = this.physics.add.sprite(100, 450, "dude");
+    this.player = this.physics.add.sprite(400, 510, "dude");
 
     //  Player physics properties. Give the little guy a slight bounce.
     this.player.setBounce(0.2);
     this.player.setCollideWorldBounds(true);
 
     //Set gravity of this scene
-    this.physics.world.gravity.y = 400;
+    this.physics.world.gravity.y = 300;
 
     //  Our player animations, turning, walking left and walking right.
     this.anims.create({
@@ -79,16 +74,10 @@ export default class BootScene extends Phaser.Scene {
     //  Input Events
     this.cursors = this.input.keyboard.createCursorKeys();
 
-    //  Some acorns to collect, 12 in total, evenly spaced 70 pixels apart along the x axis
+    //  random acorn to collect
     this.acorns = this.physics.add.group({
       key: "acorn",
-      repeat: 11,
-      setXY: { x: 12, y: 0, stepX: 70 }
-    });
-
-    this.acorns.children.iterate(function(child) {
-      //  Give each acorn a slightly different bounce
-      child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+      setXY: { x: Phaser.Math.Between(12, 700), y: 0 }
     });
 
     //  The score
@@ -99,7 +88,7 @@ export default class BootScene extends Phaser.Scene {
 
     //  Collide the player and the acorns with the platforms
     this.physics.add.collider(this.player, platforms);
-    this.physics.add.collider(this.acorns, platforms);
+    this.physics.add.collider(this.acorns, platforms, this.acornFall, null, this);
 
     //  Checks to see if the player overlaps with any of the acorns, if he does call the collectAcorn function
     this.physics.add.overlap(
@@ -110,11 +99,6 @@ export default class BootScene extends Phaser.Scene {
       this
     );
 
-    this.physics.add.collider(
-      this.player,
-      null,
-      this
-    );
   }
 
   update() {
@@ -124,11 +108,11 @@ export default class BootScene extends Phaser.Scene {
     }
 
     if (this.cursors.left.isDown) {
-      this.player.setVelocityX(-160);
+      this.player.setVelocityX(-300);
 
       this.player.anims.play("left", true);
     } else if (this.cursors.right.isDown) {
-      this.player.setVelocityX(160);
+      this.player.setVelocityX(300);
 
       this.player.anims.play("right", true);
     } else {
@@ -150,18 +134,17 @@ export default class BootScene extends Phaser.Scene {
     this.scoreText.setText("Score: " + this.score);
 
     if (this.acorns.countActive(true) === 0) {
-      //  A new batch of acorns to collect
+      // A new batch of acorns to collect
       this.acorns.children.iterate(function(child) {
-        child.enableBody(true, child.x, 0, true, true);
+        child.enableBody(true, Phaser.Math.Between(12, 700), 0, true, true);
       });
-
-      var x =
-        player.x < 400
-          ? Phaser.Math.Between(400, 800)
-          : Phaser.Math.Between(0, 400);
-
     }
   }
 
-
+  acornFall(acorn, platform){
+    this.physics.pause();
+    this.player.setTint(0xff0000);
+    this.player.anims.play("turn");
+    this.gameOver = true;
+  }
 }
